@@ -61,17 +61,15 @@
         }
     }
 
-     stage('Deploy to Kubernetes') {
-       environment {
-         AWS_ACCESS_KEY_ID = credentials('aws-creds')
-         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
-     }
-       steps {
-          withKubeConfig([credentialsId: 'kubeconfig']) {
-            sh 'kubectl apply -f Ansible/k8s_deployment.yaml --validate=false'
+    stages {
+        stage('Deploy To Kubernetes') {
+            steps {
+                   withKubeConfig(caCertificate: '', devops-cluster: 'eks', contextName: '', credentialsId: 'kubeconfig', namespace: 'ms', restrictKubeConfigAccess: false, serverUrl: 'https://BB015945DA29F43F4EDA4A70E19EB9A8.gr7.us-east-1.eks.amazonaws.com') {
+                    sh "kubectl apply -f Ansible/k8s_deployment.yaml"
+                    
+                }
+            }
         }
-    }
-}
 
 }
 }
