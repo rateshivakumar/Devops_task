@@ -1,6 +1,10 @@
-  pipeline {
+pipeline {
     agent any
 
+    environment {
+        GIT_REPO_NAME = "Devops_task"
+        GIT_USER_NAME = "rateshivakumar"
+    }
 
     stages {
         stage('Checkout Code') {
@@ -9,67 +13,63 @@
                 git branch: 'main', url: 'https://github.com/rateshivakumar/Devops_task.git'
             }
         }
-    	
 
-        stage('BuildingJar') {
+        stage('Building Jar') {
             steps {
                 echo 'maven build'
                 sh 'cd Application && mvn clean package'
             }
         }
-		
-	
-       stage('Build docker image'){
-            steps{
-                script{
-                    echo 'docker image build'
-					sh 'cd Application && docker build -t rateshivakumar/k8s:${BUILD_NUMBER} .'
-                }
-            }
-        }
-		
-	    stage('Push image to Hub'){
-            steps{
-                script{
-                   withCredentials([string(credentialsId: 'dockerhub', variable: 'dockerhub')]) {
-                   sh 'docker login -u rateshivakumar -p ${dockerhub}'
 
-              }
-                   sh 'docker push rateshivakumar/k8s:${BUILD_NUMBER}'
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo 'docker image build'
+                    sh 'cd Application && docker build -t rateshivakumar/k8s:${BUILD_NUMBER} .'
                 }
             }
         }
-		
-      stage('Update kubernetes Deployment manifest File') {
-        environment {
-            GIT_REPO_NAME = "Devops_task"
-            GIT_USER_NAME = "rateshivakumar"
+
+        stage('Push Image to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'dockerhub', variable: 'dockerhub')]) {
+                        sh 'docker login -u rateshivakumar -p ${dockerhub}'
+                    }
+                    sh 'docker push rateshivakumar/k8s:${BUILD_NUMBER}'
+                }
+            }
         }
-        steps {
-            withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-                sh '''
-                    git config user.email "shiva@gmail.com"
-                    git config user.name "shiva"
-                    BUILD_NUMBER=${BUILD_NUMBER}
-                  
-                    sed -i "s/k8s:.*/k8s:${BUILD_NUMBER}/g" Ansible/k8s_deployment.yaml
-                    git add .
-                    git commit -m "Update deployment image tag to version ${BUILD_NUMBER}"
-                    git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-                '''
+
+        stage('Update Kubernetes Deployment Manifest File') {
+            steps {
+                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        git config user.email "shiva@gmail.com"
+                        git config user.name "shiva"
+                        sed -i "s/k8s:.*/k8s:${BUILD_NUMBER}/g" Ansible/k8s_deployment.yaml
+                        git add .
+                        git commit -m "Update deployment image tag to version ${BUILD_NUMBER}"
+                        git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                withKubeConfig(
+                    caCertificate: '',
+                    clusterName: 'devops-cluster',
+                    contextName: '',
+                    credentialsId: 'kubeconfig',
+                    namespace: 'ms',
+                    restrictKubeConfigAccess: false,
+                    serverUrl: 'https://BB015945DA29F43F4EDA4A70E19EB9A8.gr7.us-east-1.eks.amazonaws.com'
+                ) {
+                    sh 'kubectl apply -f Ansible/k8s_deployment.yaml'
+                }
             }
         }
     }
-
-    stages {
-        stage('Deploy To Kubernetes') {
-            steps {
-                   withKubeConfig(caCertificate: '', clusterName: 'devops-cluster', contextName: '', credentialsId: 'kubeconfig', namespace: 'ms', restrictKubeConfigAccess: false, serverUrl: 'https://BB015945DA29F43F4EDA4A70E19EB9A8.gr7.us-east-1.eks.amazonaws.com') {
-                    sh "kubectl apply -f Ansible/k8s_deployment.yaml"
-                    
-                }
-            }
-        }
-     }
-}
 }
