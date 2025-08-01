@@ -67,7 +67,7 @@
          AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
      }
        steps {
-          withKubeConfig([credentialsId: 'k8s-creds']) {
+          withKubeConfig([credentialsId: 'kubeconfig']) {
             sh 'kubectl apply -f Ansible/k8s_deployment.yaml'
         }
     }
