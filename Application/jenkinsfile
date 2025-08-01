@@ -11,14 +11,14 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo 'scm git'
-                git branch: 'main', url: 'https://github.com/rateshivakumar/Devops_task.gi'
+                git branch: 'main', url: 'https://github.com/rateshivakumar/Devops_task.git'
             }
         }
 
         stage('Building Jar') {
             steps {
                 echo 'maven build'
-                sh 'cd Application && mvn clean package'
+                sh 'cd Applicati && mvn clean package'
             }
         }
 
