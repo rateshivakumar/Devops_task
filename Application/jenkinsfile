@@ -23,7 +23,7 @@
             steps{
                 script{
                     echo 'docker image build'
-					sh 'cd Application && docker build -t devopshubg333/k8s:${BUILD_NUMBER} .'
+					sh 'cd Application && docker build -t rateshivakumar/k8s:${BUILD_NUMBER} .'
                 }
             }
         }
@@ -32,24 +32,24 @@
             steps{
                 script{
                    withCredentials([string(credentialsId: 'dockerhub', variable: 'dockerhub')]) {
-                   sh 'docker login -u devopshubg333 -p ${dockerhub}'
+                   sh 'docker login -u rateshivakumar -p ${dockerhub}'
 
               }
-                   sh 'docker push devopshubg333/k8s:${BUILD_NUMBER}'
+                   sh 'docker push rateshivakumar/k8s:${BUILD_NUMBER}'
                 }
             }
         }
 		
       stage('Update kubernetes Deployment manifest File') {
         environment {
-            GIT_REPO_NAME = "REALTIMEPROJECT"
-            GIT_USER_NAME = "devopstraininghub"
+            GIT_REPO_NAME = "Devops_task"
+            GIT_USER_NAME = "rateshivakumar"
         }
         steps {
             withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                 sh '''
-                    git config user.email "madhu@gmail.com"
-                    git config user.name "madhu"
+                    git config user.email "shiva@gmail.com"
+                    git config user.name "shiva"
                     BUILD_NUMBER=${BUILD_NUMBER}
                   
                     sed -i "s/k8s:.*/k8s:${BUILD_NUMBER}/g" Ansible/k8s_deployment.yaml
@@ -61,14 +61,15 @@
         }
     }
 
-    stage('k8s Deployment using ansible'){
-            steps{
-              
-                    script{
-                        ansiblePlaybook credentialsId: 'ssh', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'Ansible/ansible_k8s_deploy_playbook.yaml'
-                   
-                }
-            }
-        }
+      stage('Deploy to Kubernetes') {
+        steps {
+            withCredentials([kubeconfigContent(credentialsId: 'kubeconfig')]) {
+                sh '''
+                    export KUBECONFIG=$KUBECONFIG
+                    kubectl apply -f Ansible/k8s_deployment.yaml
+                '''
+             }
+         }
+    }
 }
 }
