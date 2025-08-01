@@ -19,16 +19,6 @@
         }
 		
 	
-		
-        stage('sonar') {
-            steps {
-                echo 'scanning project'
-                sh 'ls -ltr'
-                sh '''cd Application && mvn sonar:sonar \\
-                      -Dsonar.host.url=http://3.88.43.182:9000 \\
-                      -Dsonar.login=squ_f7d38d9efecde942052011718376e7479ae66764'''
-            }
-    	}
        stage('Build docker image'){
             steps{
                 script{
@@ -38,14 +28,7 @@
             }
         }
 		
-       stage('docker image scan'){
-        steps{
-            sh "trivy image devopshubg333/k8s:${BUILD_NUMBER}"
-        }
-    }		
- 
-
-		 stage('Push image to Hub'){
+	    stage('Push image to Hub'){
             steps{
                 script{
                    withCredentials([string(credentialsId: 'dockerhub', variable: 'dockerhub')]) {
