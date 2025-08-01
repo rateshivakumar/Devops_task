@@ -4,9 +4,7 @@ pipeline {
     environment {
         GIT_REPO_NAME = "Devops_task"
         GIT_USER_NAME = "rateshivakumar"
-        AWS_ACCESS_KEY_ID = credentials('aws-creds')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
-        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_DEFAULT_REGION = "us-east-1"
     }
 
     stages {
@@ -61,16 +59,18 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withKubeConfig(
-                    caCertificate: '',
-                    clusterName: 'devops-cluster',
-                    contextName: '',
-                    credentialsId: 'kubeconfig',
-                    namespace: 'ms',
-                    restrictKubeConfigAccess: false,
-                    serverUrl: 'https://BB015945DA29F43F4EDA4A70E19EB9A8.gr7.us-east-1.eks.amazonaws.com'
-                ) {
-                    sh 'kubectl apply -f Ansible/k8s_deployment.yaml'
+                withCredentials([usernamePassword(credentialsId: 'aws-creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    withKubeConfig(
+                        caCertificate: '',
+                        clusterName: 'devops-cluster',
+                        contextName: '',
+                        credentialsId: 'kubeconfig',
+                        namespace: 'ms',
+                        restrictKubeConfigAccess: false,
+                        serverUrl: 'https://BB015945DA29F43F4EDA4A70E19EB9A8.gr7.us-east-1.eks.amazonaws.com'
+                    ) {
+                        sh 'kubectl apply -f Ansible/k8s_deployment.yaml'
+                    }
                 }
             }
         }
