@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo 'scm git'
-                git branch: 'main', url: 'https://github.com/rateshivakumar/Devops_task.git'
+                git branch: 'main', url: 'https://github.com/rateshivakumar/Devops_task.gi'
             }
         }
 
