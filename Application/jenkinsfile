@@ -48,7 +48,7 @@ pipeline {
                     sh '''
                         git config user.email "shiva@gmail.com"
                         git config user.name "shiva"
-                        sed -i "s/k8s:.*/k8s:${BUILD_NUMBER}/g" Ansible/k8s_deployment.yaml
+                        sed -i "s/k8s:.*/k8s:${BUILD_NUMBER}/g" k8s_deployment.yaml
                         git add .
                         git commit -m "Update deployment image tag to version ${BUILD_NUMBER}"
                         git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
@@ -69,7 +69,7 @@ pipeline {
                         restrictKubeConfigAccess: false,
                         serverUrl: 'https://BB015945DA29F43F4EDA4A70E19EB9A8.gr7.us-east-1.eks.amazonaws.com'
                     ) {
-                        sh 'kubectl apply -f Ansible/k8s_deployment.yaml'
+                        sh 'kubectl apply -f k8s_deployment.yaml'
                     }
                 }
             }
