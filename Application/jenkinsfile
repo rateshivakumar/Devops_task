@@ -61,14 +61,17 @@
         }
     }
 
-      stage('Deploy to Kubernetes') {
-        steps {
-            withKubeConfig([credentialsId: 'kubeconfig']){
-                sh '''
-                    kubectl apply -f Ansible/k8s_deployment.yaml
-                '''
-             }
-         }
+     stage('Deploy to Kubernetes') {
+       environment {
+         AWS_ACCESS_KEY_ID = credentials('aws-creds')
+         AWS_SECRET_ACCESS_KEY = credentials('aws-creds')
+     }
+       steps {
+          withKubeConfig([credentialsId: 'k8s-creds']) {
+            sh 'kubectl apply -f Ansible/k8s_deployment.yaml'
+        }
     }
+}
+
 }
 }
