@@ -63,9 +63,8 @@
 
       stage('Deploy to Kubernetes') {
         steps {
-            withCredentials([kubeconfigContent(credentialsId: 'kubeconfig')]) {
+            withKubeConfig([credentialsId: 'kubeconfig']){
                 sh '''
-                    export KUBECONFIG=$KUBECONFIG
                     kubectl apply -f Ansible/k8s_deployment.yaml
                 '''
              }
